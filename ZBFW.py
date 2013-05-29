@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-#MyfirtPythonScript
-
 interfaces = input("Please enter number of interfaces?\n")
-#Basic Zone Based Firewall config
 inside = raw_input("Please specify the name of the inside lan interface? Ex. FastEthernet0/1\n")
 outside = raw_input("Please spcify the name of the outside interface? Ex. FastEthernet0/0\n")
 print ("\n")
