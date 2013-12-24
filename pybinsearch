@@ -1,0 +1,35 @@
+import urllib2
+import glob
+import re
+import time
+
+searchterm = raw_input("What are you searching for?")
+#search = re.compile(searchterm)
+iterator = 1
+
+
+while(1):
+        counter = 0
+
+
+
+        url = urllib2.urlopen("http://pastebin.com/archive")
+        html = url.read()
+        url.close()
+        html_lines = html.split('\n')
+        for line in html_lines:
+                if re.search(r'<td><img src=\"/i/t.gif\"  class=\"i_p0\" alt=\"\" border=\"0\" /><a href=\"/[0-9a-zA-Z]{8}">.*</a></td>', line ):
+                #find = glob.glob('<td><img src="/i/t.gif"  class="i_p0" alt="" border="0" /><a href=/.*>.*</a></td>')
+                        link_id = line[72:86]
+                        #print "http://pastebin.com/raw.php?i=" + link_id[:-6]
+
+                        url_2 = urllib2.urlopen("http://pastebin.com/raw.php?i=" + link_id[:-6])
+                        raw_text = url_2.read()
+                        url_2.close()
+                        time.sleep(15)
+                        print "Now reading...http://pastebin.com/raw.php?i=" + link_id[:-6]
+                        if re.search(r''+searchterm, raw_text):
+                                print "Found " + searchterm + " in http://pastebin.com/raw.php?i=" + link_id[:-6]
+                        counter += 1
+        time.sleep(60)
+        iterator += 1
