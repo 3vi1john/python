@@ -1,35 +1,60 @@
-import urllib2
-import glob
+import framework
+# unique to module
 import re
+import urllib2
 import time
 
-searchterm = raw_input("What are you searching for?")
-#search = re.compile(searchterm)
-iterator = 1
+class Module(framework.module):
 
+    def __init__(self, params):
+        framework.module.__init__(self, params)
+        self.register_option('keyword', None, 'no', 'keyword to search recent pastebin posts for')
+        self.register_option('regex', '%s$', 'yes', 'regex to match for adding results to the database')
+        self.info = {
+                     'Name': 'Pastebin archive search',
+                     'Author': 'John Babio (@3vi1john)',
+                     'Description': 'Does a regex keyword search on the most recent public pastes on pastebin.org.',
+                     'Comments': []
+                     }
+   
+    def module_run(self):
+        searchterm = self.options['regex']['value']
+        #searchterm = '.*' + word + '.*'
+        iterator = 1
+        while(1):
+            
+            counter = 0
+            try: 
+                url = urllib2.urlopen("http://pastebin.com/archive")
+                html = url.read()
+                url.close()
+                html_lines = html.split('\n')
+                for line in html_lines:
+                    if counter < 12:
+                        if re.search(r'<td><img src=\"/i/t.gif\"  class=\"i_p0\" alt=\"\" border=\"0\" /><a href=\"/[0-9a-zA-Z]{8}">.*</a></td>', line ):
+                            link_id = line[72:86]
+                            url_2 = urllib2.urlopen("http://pastebin.com/raw.php?i=" + link_id[:-6])
+                            raw_text = url_2.read()
+                            url_2.close()
+                            time.sleep(12)
+                            self.alert('Now enumerating http://pastebin.com/raw.php?i=%s' % (link_id[:-6]))
+                            if re.search(r''+searchterm, raw_text):
+                                self.alert('Found  %s  http://pastebin.com/raw.php?i=%s' % (searchterm,link_id[:-6]))
+                            counter += 1
+                    
+            except (IOError):
+                self.verbose('Network Error!!!')
+                exit()
+            iterator += 1
 
-while(1):
-        counter = 0
-
-
-
-        url = urllib2.urlopen("http://pastebin.com/archive")
-        html = url.read()
-        url.close()
-        html_lines = html.split('\n')
-        for line in html_lines:
-                if re.search(r'<td><img src=\"/i/t.gif\"  class=\"i_p0\" alt=\"\" border=\"0\" /><a href=\"/[0-9a-zA-Z]{8}">.*</a></td>', line ):
-                #find = glob.glob('<td><img src="/i/t.gif"  class="i_p0" alt="" border="0" /><a href=/.*>.*</a></td>')
-                        link_id = line[72:86]
-                        #print "http://pastebin.com/raw.php?i=" + link_id[:-6]
-
-                        url_2 = urllib2.urlopen("http://pastebin.com/raw.php?i=" + link_id[:-6])
-                        raw_text = url_2.read()
-                        url_2.close()
-                        time.sleep(15)
-                        print "Now reading...http://pastebin.com/raw.php?i=" + link_id[:-6]
-                        if re.search(r''+searchterm, raw_text):
-                                print "Found " + searchterm + " in http://pastebin.com/raw.php?i=" + link_id[:-6]
-                        counter += 1
-        time.sleep(60)
-        iterator += 1
+        # Get the malicious domain results
+        #entries = re.findall(r'<td><nobr>(.*?)_.*?<.+?td><td>(.+?)</td><td>(.*?)</td><td>.*?</td><td>(.*?)</td><td>', resp.text.replace('<wbr>', ''))
+        
+        #if entries:
+        #    tdata = []
+        #    tdata.append(['Page', 'Date', 'IP', 'Issue'])
+        #    for line in entries:
+        #        tdata.append([line[1], line[0], line[2], line[3]])
+        #    self.table(tdata, True)
+        #else:
+        #    self.output('No entries found.')
