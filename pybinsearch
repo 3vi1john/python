@@ -1,5 +1,4 @@
 import framework
-# unique to module
 import re
 import urllib2
 import time
@@ -8,38 +7,37 @@ class Module(framework.module):
 
     def __init__(self, params):
         framework.module.__init__(self, params)
-        self.register_option('keyword', None, 'no', 'keyword to search recent pastebin posts for')
+        self.register_option('keyword', None, 'yes', 'keyword to search recent pastebin posts for')
+        self.register_option('count', 1, 'yes', 'number of pastes to search. (max = 250 of the most recent pastes)')
         self.info = {
                      'Name': 'Pastebin archive search',
-                     'Author': 'John Babio (@3vi1john)',
-                     'Description': 'Does a regex keyword search on the most recent public pastes on pastebin.org.',
+                     'Author': 'John Babio (@3vi1john) & Matthew Fuller (@matthewdfuller)',
+                     'Description': 'Does a regex keyword search on the most recent public pastebin.com pastes. The user specifies the number of recent links to check by the count value.',
                      'Comments': []
                      }
    
     def module_run(self):
+        counter = 1
         searchterm = self.options['keyword']['value']
-        iterator = 1
-        while(1):
-            
-            counter = 0
-            try: 
-                url = urllib2.urlopen("http://pastebin.com/archive")
-                html = url.read()
-                url.close()
-                html_lines = html.split('\n')
-                for line in html_lines:
-                    if re.search(r'<td><img src=\"/i/t.gif\"  class=\"i_p0\" alt=\"\" border=\"0\" /><a href=\"/[0-9a-zA-Z]{8}">.*</a></td>', line ):
-                        link_id = line[72:86]
-                        url_2 = urllib2.urlopen("http://pastebin.com/raw.php?i=" + link_id[:-6])
-                        raw_text = url_2.read()
-                        url_2.close()
-                        time.sleep(12)
-                        self.alert('Now enumerating http://pastebin.com/raw.php?i=%s' % (link_id[:-6]))
-                        self.alert('counter = %s' % (counter))
-                        if re.search(r''+searchterm, raw_text):
-                            self.alert('Found  %s  http://pastebin.com/raw.php?i=%s' % (searchterm,link_id[:-6]))
-                        counter += 1
-                    
-            except (IOError):
-                self.verbose('Disconnected or temporary 1 hour ban...')
-            iterator += 1
+        nol = self.options['count']['value']
+        url = 'http://pastebin.com/archive'
+        resp = self.request(url)
+        string = self.encoding
+        print string
+        #regex = r'<td><img src=\"/i/t.gif\"  class=\"i_p0\" alt=\"\" border=\"0\" /><a href=\"/[0-9a-zA-Z]{8}">.*</a></td>'
+        #link_id = re.findall(regex, resp)
+        #for lines in link_id:
+        #    links = link_id[68:76]
+        #    print links
+            #while counter <= nol:
+            #    try:    
+            #        url = 'http://pastebin.com/raw.php?i=' + links
+            #        resp = self.request(url)
+            #        raw_text = resp.text
+            #        time.sleep(10)
+            #        self.alert('Now searching %s' % url)
+            #        if re.search(searchterm, raw_text):
+            #            self.alert('Found %s on paste http://pastebin.com/raw.php?i=%s' % (searchterm,links))
+            #        counter += 1
+            #   except (IOError):
+            #        self.verbose('Disconnected or temporary 1 hour ban...')
